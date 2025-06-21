@@ -22,30 +22,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
 
-      - run: npm ci
-
-      - name: Create .env from GitHub secrets
-        run: |
-          touch .env
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "${{ secrets.MAIN_ENV_FILE }}" > .env
-          elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            echo "${{ secrets.PROD_ENV_FILE }}" > .env
-          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-            echo "${{ secrets.DEV_ENV_FILE }}" > .env
-          fi
-
-      - name: Set Deployment Path
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "DEPLOY_PATH=/home/ubuntu/deploy/main" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            echo "DEPLOY_PATH=/home/ubuntu/deploy/production" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-            echo "DEPLOY_PATH=/home/ubuntu/deploy/development" >> $GITHUB_ENV
-          fi
+      - name: Install Dependencies
+        run: npm install
 
       - name: Deploy Code
         run: |
@@ -58,5 +37,3 @@ jobs:
           cd $DEPLOY_PATH
           pm2 restart all || pm2 start index.js --name my-app
           pm2 save
-- name: Install Dependencies
-  run: npm install
