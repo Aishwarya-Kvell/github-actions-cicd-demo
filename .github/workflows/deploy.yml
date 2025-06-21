@@ -16,7 +16,8 @@ jobs:
         node-version: [20.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -24,26 +25,25 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install Dependencies
-        run: npm install
-        working-directory: ./python-app
+        run: |
+          cd python-app
+          npm install
 
       - name: Create .env from GitHub secrets
         run: |
-          echo "ENV_VAR_1=${{ secrets.ENV_VAR_1 }}" >> .env
-          echo "ENV_VAR_2=${{ secrets.ENV_VAR_2 }}" >> .env
-        working-directory: ./python-app
+          echo "${{ secrets.ENV_FILE }}" > python-app/.env
 
       - name: Set Deployment Path
-        run: echo "DEPLOY_PATH=/home/ubuntu/myapp" >> $GITHUB_ENV
+        run: echo "DEPLOY_PATH=/home/ubuntu/deploy/python-app" >> $GITHUB_ENV
 
       - name: Deploy Code
         run: |
           mkdir -p $DEPLOY_PATH
           cp -R ./python-app/* $DEPLOY_PATH
-          cp ./python-app/.env $DEPLOY_PATH
+          cp python-app/.env $DEPLOY_PATH
 
       - name: Restart Application via PM2
         run: |
           cd $DEPLOY_PATH
-          pm2 restart all || pm2 start index.js --name my-app
+          pm2 restart all || pm2 start index.js --name python-app
           pm2 save
