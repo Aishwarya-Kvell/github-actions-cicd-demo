@@ -58,3 +58,5 @@ jobs:
           cd $DEPLOY_PATH
           pm2 restart all || pm2 start index.js --name my-app
           pm2 save
+- name: Install Dependencies
+  run: npm install
