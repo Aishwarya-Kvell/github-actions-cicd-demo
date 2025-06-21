@@ -1,4 +1,4 @@
-name: Node.js CI/CD
+name: Python CI/CD
 
 on:
   push:
@@ -8,26 +8,22 @@ on:
       - development
 
 jobs:
-  build:
+  deploy:
     runs-on: self-hosted
-
-    strategy:
-      matrix:
-        node-version: [20.x]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           cd python-app
-          npm install
+          pip install -r requirements.txt
 
       - name: Create .env from GitHub secrets
         run: |
@@ -42,8 +38,8 @@ jobs:
           cp -R ./python-app/* $DEPLOY_PATH
           cp python-app/.env $DEPLOY_PATH
 
-      - name: Restart Application via PM2
+      - name: Restart Python App with PM2
         run: |
           cd $DEPLOY_PATH
-          pm2 restart all || pm2 start index.js --name python-app
+          pm2 restart python-app || pm2 start app.py --name python-app
           pm2 save
